@@ -1,0 +1,61 @@
+library(forecast)
+library(ggplot2)
+library(fGarch)
+library(zoo)
+library(tseries)
+
+setwd("D:\\Ms In Business Analytics\\Spring 2020\\Time Series Forecasting\\Final Project")
+JkStock =  read.csv("JKTYRE.NS.csv")
+
+##########size and structure of data######################
+dim(JkStock)
+names(JkStock)
+str(JkStock)
+attributes(JkStock)
+head(JkStock)
+tail(JkStock)
+
+
+########### Summary of different columns #############
+summary(JkStock)
+
+
+########### Checking for Missing-Values##############
+sum(is.null(JkStock))
+
+######### converting to a time series ##########
+jkPrice = ts(JkStock$Adj.Close, start = c(2010,1), frequency = 365)
+tail(jkPrice)
+length(jkPrice)
+###### Time series Plot #######
+plot(jkPrice, xlab = "Time", ylab = "Stock Prices", bty = "l")
+
+#### seperating training and test data #######
+# training data -  from year 2010 to 2018
+#test data - 2019
+
+stepsAhead <- 242
+nTrain <- 2461 - stepsAhead
+train.ts <- window(jkPrice, start = c(2010, 1), end = c(2010,nTrain))
+tail(train.ts)
+head(train.ts)
+valid.ts <- window(jkPrice, start = c(2010, nTrain + 1), end = c(2010, nTrain + stepsAhead))
+head(valid.ts) 
+
+
+
+######## tbats model #####
+tbMod = tbats(train.ts)
+plot(tbMod)
+tbForecast = forecast(tbMod, h =242)
+plot(tbForecast)
+lines(valid.ts)
+plot(tbForecast$residuals)
+acf(tbForecast$residuals)
+Box.test(tbForecast$residuals)
+accuracy(tbForecast, valid.ts)
+
+
+
+
+
